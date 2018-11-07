@@ -2,7 +2,10 @@ import React from 'react';
 import {FormGroup, FormControl, Button} from 'react-bootstrap';
 import Dropzone from "react-dropzone";
 import './index.css';
-import ReactQuill from 'react-quill';
+import ReactQuill, {Quill} from 'react-quill'
+import {ImageResize} from './ImageResize';
+
+Quill.register('modules/imageResize', ImageResize);
 
 class ReviewForm extends React.Component {
   constructor(props) {
@@ -55,6 +58,40 @@ class ReviewForm extends React.Component {
   }
 
   render() {
+    const modulesQill = {
+      toolbar: [
+        [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
+        [{size: []}],
+        ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+        [{'list': 'ordered'}, {'list': 'bullet'},
+         {'indent': '-1'}, {'indent': '+1'}],
+        ['link', 'image', 'video'],
+        ['clean']
+      ],
+      clipboard: {
+        // toggle to add extra line breaks when pasting HTML:
+        matchVisual: false,
+      },
+      history: {
+        delay: 1000,
+        maxStack: 50,
+        userOnly: false
+      },
+      imageResize: {
+        displayStyles: {
+          backgroundColor: 'black',
+          border: 'none',
+          color: 'white'
+        },
+        modules: [ 'Resize', 'DisplaySize', 'Toolbar' ]
+      }
+    }
+    const formats = [
+      'header', 'font', 'size',
+      'bold', 'italic', 'underline', 'strike', 'blockquote',
+      'list', 'bullet', 'indent',
+      'link', 'image', 'video'
+    ]
     return(
       <div>
         <FormGroup controlId="upload-image">
@@ -72,6 +109,9 @@ class ReviewForm extends React.Component {
           <ReactQuill
             value={this.state.text}
             onChange={this.handleChange}
+            modules={modulesQill}
+            formats={formats}
+            placeholder={"Enter new content here..."}
           />
         </FormGroup>
         <div className="btnSubmit">
