@@ -1,3 +1,10 @@
 .btnSubmit {
+  max-width: 50px;
+  margin: 0 auto 10px;
+}
 
+#dropzone-upload-component {
+  width: auto !important;
+  height: auto !important;
+  padding: 16px;
 }
