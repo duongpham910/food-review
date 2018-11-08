@@ -3,27 +3,26 @@
  * (Works on Chrome, Edge, Safari and replaces Firefox's native resize behavior)
  * @see https://quilljs.com/blog/building-a-custom-module/
  */
-export class ImageResize {
+export class YoutubeResize {
 
   constructor(quill, options = {}) {
-    // save the quill reference and options
     this.quill = quill;
     this.options = options;
     // bind handlers to this instance
-    this.handleClick = this.handleClick.bind(this);
+    // this.handleClick = this.handleClick.bind(this);
     this.handleMousedown = this.handleMousedown.bind(this);
     this.handleMouseup = this.handleMouseup.bind(this);
-    this.handleDrag = this.handleDrag.bind(this);
     this.checkImage = this.checkImage.bind(this);
     // track resize handles
     this.boxes = [];
     // disable native image resizing on firefox
-    document.execCommand('enableObjectResizing', false, 'false');
+    // document.execCommand('enableObjectResizing', false, 'false');
     // respond to clicks inside the editor
     this.quill.root.addEventListener('click', this.handleClick, false);
   }
 
-  handleClick(evt) {
+  handleClick = (evt) => {
+    console.log(evt.target.tagName);
     if (evt.target && evt.target.tagName && evt.target.tagName.toUpperCase() === 'IMG') {
       if (this.img === evt.target) {
         // we are already focused on this image
