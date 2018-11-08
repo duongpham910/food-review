@@ -4,8 +4,10 @@ import Dropzone from "react-dropzone";
 import './index.css';
 import ReactQuill, {Quill} from 'react-quill'
 import {ImageResize} from './ImageResize';
+import {YoutubeResize} from './YoutubeResize';
 
 Quill.register('modules/imageResize', ImageResize);
+Quill.register('modules/youtubeResize', YoutubeResize);
 
 class ReviewForm extends React.Component {
   constructor(props) {
@@ -36,20 +38,15 @@ class ReviewForm extends React.Component {
   }
 
   onFileDropped = (acceptedFiles, rejectedFiles) => {
-    if (acceptedFiles[0].size < this.maxUpLoadFileSize){
-      this.setState({
-        uploadedFile: acceptedFiles[0] || null,
-      });
-    }else {
-
-    }
+    this.setState({
+      uploadedFile: acceptedFiles[0] || null,
+    });
   }
 
   renderDropZone(fileName) {
     return(
       <Dropzone
         onDrop={this.onFileDropped}
-        disablePreview={true}
         id="dropzone-upload-component"
       >
         <div>{fileName}</div>
@@ -58,6 +55,7 @@ class ReviewForm extends React.Component {
   }
 
   render() {
+    let fileName = this.state.uploadedFile ? this.state.uploadedFile.name : "Upload image";
     const modulesQill = {
       toolbar: [
         [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
@@ -69,7 +67,6 @@ class ReviewForm extends React.Component {
         ['clean']
       ],
       clipboard: {
-        // toggle to add extra line breaks when pasting HTML:
         matchVisual: false,
       },
       history: {
@@ -83,8 +80,8 @@ class ReviewForm extends React.Component {
           border: 'none',
           color: 'white'
         },
-        modules: [ 'Resize', 'DisplaySize', 'Toolbar' ]
-      }
+        modules: ['Resize', 'DisplaySize', 'Toolbar']
+      },
     }
     const formats = [
       'header', 'font', 'size',
@@ -95,7 +92,7 @@ class ReviewForm extends React.Component {
     return(
       <div>
         <FormGroup controlId="upload-image">
-          {this.renderDropZone("Upload image")}
+          {this.renderDropZone(fileName)}
         </FormGroup>
         <FormGroup controlId="food-name">
           <FormControl
