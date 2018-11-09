@@ -1,22 +1,29 @@
 import React from 'react';
 import {FormGroup, FormControl, Button} from 'react-bootstrap';
+import {Grid, Row} from 'react-bootstrap';
 import Dropzone from "react-dropzone";
-import './index.css';
+import update from 'react-addons-update'
 import ReactQuill, {Quill} from 'react-quill'
 import {ImageResize} from './ImageResize';
 import { Video } from './quill-video-resize'
 import './quill-video-resize.css'
+import './index.css';
 
 Quill.register('modules/imageResize', ImageResize);
 Quill.register({'formats/video': Video})
+
+const imageMaxSize = 1000000000 //bytes
+const acceptedFileTypes = 'image/x-png, image/png, image/jpg, image/jpeg, image/gif'
+const acceptedFileTypesArray = acceptedFileTypes.split(",").map((item) => item.trim())
 
 class ReviewForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       foodName: '',
-      uploadedFile: null,
+      uploadedFiles: [],
       text: '',
+      imagePreviews: [],
     };
   }
 
@@ -31,17 +38,9 @@ class ReviewForm extends React.Component {
   attachQuillRefs = (onMount) => {
     if (typeof this.reactQuill.getEditor !== 'function') return;
     this.quill = this.reactQuill.getEditor()
-    // this.quill.format('font', 'sofia')
-     // respond to clicks inside the editor
-     this.quill.root.addEventListener('click', this.handleClick, false)
-     this.quill.root.quill = this.quill
-    // if(onMount){
-    //   let src = 'https://www.youtube.com/embed/o-KdQiObAGM'
-    //   this.quill.insertEmbed(0, 'video', src, 'user');
-    // }
-
+    this.quill.root.addEventListener('click', this.handleClick, false)
+    this.quill.root.quill = this.quill
   }
-
 
   handleInput = (e) => {
     this.setState({
@@ -50,9 +49,8 @@ class ReviewForm extends React.Component {
   }
 
   handleSubmit = () => {
-    // package all data
-
-    //Call api
+    //package all data
+    //call api
   }
 
   handleChange = (value) => {
@@ -61,10 +59,56 @@ class ReviewForm extends React.Component {
     })
   }
 
+  verifyFiles = (files) => {
+    if (files && files.length > 0) {
+      let currentFile = files[0]
+      let currentFileType = currentFile.type
+      let currentFileSize = currentFile.size
+
+      if (currentFileSize > imageMaxSize) {
+        return false
+      }
+
+      if (!acceptedFileTypesArray.includes(currentFileType)) {
+        return false
+      }
+    }
+    return true
+  }
+
   onFileDropped = (acceptedFiles, rejectedFiles) => {
-    this.setState({
-      uploadedFile: acceptedFiles[0] || null,
-    });
+    let files = this.state.uploadedFiles
+    let filesPreview = this.state.imagePreviews
+    if (this.verifyFiles(acceptedFiles)) {
+      files.push(acceptedFiles[0]);
+
+      let currentFile = acceptedFiles[0]
+      let reader = new FileReader()
+      reader.addEventListener("load", ()=>{
+        filesPreview.push(reader.result)
+        this.setState({
+          imagePreviews: filesPreview
+        })
+      })
+      reader.readAsDataURL(currentFile)
+
+      this.setState({
+        uploadedFiles: files || null,
+      });
+    }
+  }
+
+  handleRemove = (index) => {
+    let listPreviews = update(this.state.imagePreviews, {})
+    let listUpload = update(this.state.uploadedFiles, {})
+    if (listPreviews.length > 0 && listUpload.length > 0) {
+      listPreviews.splice(index, 1);
+      listUpload.splice(index, 1);
+      this.setState({
+        imagePreviews: listPreviews,
+        uploadedFiles: listUpload,
+      });
+    }
   }
 
   renderDropZone(fileName) {
@@ -72,6 +116,8 @@ class ReviewForm extends React.Component {
       <Dropzone
         onDrop={this.onFileDropped}
         id="dropzone-upload-component"
+        accept={acceptedFileTypes}
+        multiple={false}
       >
         <div>{fileName}</div>
       </Dropzone>
@@ -79,7 +125,7 @@ class ReviewForm extends React.Component {
   }
 
   render() {
-    let fileName = this.state.uploadedFile ? this.state.uploadedFile.name : "Upload image";
+    let fileName = "Upload image";
     const modulesQill = {
       toolbar: [
         [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
@@ -113,10 +159,23 @@ class ReviewForm extends React.Component {
       'list', 'bullet', 'indent',
       'link', 'image', 'video'
     ]
+    let imagePreviews = this.state.imagePreviews
     return(
       <div>
         <FormGroup controlId="upload-image">
           {this.renderDropZone(fileName)}
+          <Grid>
+            <Row>
+              {imagePreviews.length > 0 ? imagePreviews.map((imgSrc, index) => {
+                return(
+                  <div key={index} className="img-inline">
+                    <img src={imgSrc} className="img-preview"/>
+                    <i onClick={() => this.handleRemove(index)}>✘</i>
+                  </div>
+                )
+              }) : ''}
+            </Row>
+          </Grid>
         </FormGroup>
         <FormGroup controlId="food-name">
           <FormControl
@@ -133,7 +192,8 @@ class ReviewForm extends React.Component {
             modules={modulesQill}
             formats={formats}
             placeholder={"Enter new content here..."}
-            ref={(el) => { this.reactQuill = el }}
+            ref={(el) => {this.reactQuill = el}}
+            style={{height: "300px"}}
           />
         </FormGroup>
         <div className="btnSubmit">
