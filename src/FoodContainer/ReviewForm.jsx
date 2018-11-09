@@ -4,10 +4,11 @@ import Dropzone from "react-dropzone";
 import './index.css';
 import ReactQuill, {Quill} from 'react-quill'
 import {ImageResize} from './ImageResize';
-import {YoutubeResize} from './YoutubeResize';
+import { Video } from './quill-video-resize'
+import './quill-video-resize.css'
 
 Quill.register('modules/imageResize', ImageResize);
-Quill.register('modules/youtubeResize', YoutubeResize);
+Quill.register({'formats/video': Video})
 
 class ReviewForm extends React.Component {
   constructor(props) {
@@ -18,6 +19,29 @@ class ReviewForm extends React.Component {
       text: '',
     };
   }
+
+  componentDidMount() {
+    this.attachQuillRefs(true)
+  }
+
+  componentDidUpdate() {
+    this.attachQuillRefs()
+  }
+
+  attachQuillRefs = (onMount) => {
+    if (typeof this.reactQuill.getEditor !== 'function') return;
+    this.quill = this.reactQuill.getEditor()
+    // this.quill.format('font', 'sofia')
+     // respond to clicks inside the editor
+     this.quill.root.addEventListener('click', this.handleClick, false)
+     this.quill.root.quill = this.quill
+    // if(onMount){
+    //   let src = 'https://www.youtube.com/embed/o-KdQiObAGM'
+    //   this.quill.insertEmbed(0, 'video', src, 'user');
+    // }
+
+  }
+
 
   handleInput = (e) => {
     this.setState({
@@ -109,6 +133,7 @@ class ReviewForm extends React.Component {
             modules={modulesQill}
             formats={formats}
             placeholder={"Enter new content here..."}
+            ref={(el) => { this.reactQuill = el }}
           />
         </FormGroup>
         <div className="btnSubmit">
